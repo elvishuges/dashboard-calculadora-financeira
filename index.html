@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyFinances - Material Style</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome para Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+        
+        .v-gradient { 
+            background: linear-gradient(135deg, #6200ee 0%, #3700b3 100%); 
+        }
+        
+        /* Elevações e Estados baseados no Vuetify / M3 */
+        .v-card {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0px 3px 1px -2px rgba(0,0,0,0.2), 0px 2px 2px 0px rgba(0,0,0,0.14), 0px 1px 5px 0px rgba(0,0,0,0.12);
+            transition: box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out;
+        }
+        .v-card:hover {
+            box-shadow: 0px 5px 5px -3px rgba(0,0,0,0.2), 0px 8px 10px 1px rgba(0,0,0,0.14), 0px 3px 1px -2px rgba(0,0,0,0.12);
+        }
+        
+        .v-btn {
+            text-transform: uppercase;
+            letter-spacing: 1.25px;
+            font-weight: 500;
+            transition: background-color 0.2s, box-shadow 0.2s;
+        }
+
+        .progress-bar { 
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+
+        /* Menu flutuante de ações das contas */
+        .action-menu { display: none; }
+        .gasto-row:hover .action-menu { display: flex; }
+    </style>
+</head>
+<body class="bg-[#f8f9fa] text-slate-900 min-h-screen">
+
+    <!-- Navbar Principal (Vuetify V-AppBar Style) -->
+    <header class="v-gradient text-white py-5 px-6 shadow-md mb-8 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-white/20 p-2.5 rounded-xl">
+                    <i class="fa-solid fa-wallet text-2xl text-amber-300"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-wide">MyFinances</h1>
+                    <p class="text-indigo-200 text-xs font-light">Planejador financeiro pessoal</p>
+                </div>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-4 w-full sm:w-auto justify-end">
+                <!-- Select Estilizado (v-select) -->
+                <div class="bg-white/10 rounded-xl px-3 py-2 border border-white/20 min-w-[140px]">
+                    <label class="block text-[10px] uppercase font-bold text-indigo-200">Mês</label>
+                    <select id="seletor-mes" class="bg-transparent text-white font-medium text-sm focus:outline-none w-full cursor-pointer mt-0.5">
+                        <option value="Janeiro" class="text-slate-800">Janeiro</option>
+                        <option value="Fevereiro" class="text-slate-800">Fevereiro</option>
+                        <option value="Março" class="text-slate-800">Março</option>
+                        <option value="Abril" class="text-slate-800">Abril</option>
+                        <option value="Maio" class="text-slate-800">Maio</option>
+                        <option value="Junho" class="text-slate-800">Junho</option>
+                        <option value="Julho" class="text-slate-800">Julho</option>
+                        <option value="Agosto" class="text-slate-800">Agosto</option>
+                        <option value="Setembro" class="text-slate-800">Setembro</option>
+                        <option value="Outubro" class="text-slate-800">Outubro</option>
+                        <option value="Novembro" class="text-slate-800">Novembro</option>
+                        <option value="Dezembro" class="text-slate-800">Dezembro</option>
+                    </select>
+                </div>
+
+                <!-- Painel de Saldo Disponível -->
+                <div class="bg-emerald-600 rounded-xl p-3 text-right shadow-inner min-w-[200px]">
+                    <span class="text-[10px] uppercase tracking-wider text-emerald-100 block font-bold">Saldo Livre Estimado</span>
+                    <span id="saldo-livre" class="text-2xl font-black text-white">R$ 0,00</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 pb-16 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- COLUNA 1: Parâmetros e Balanço Mensal -->
+        <div class="space-y-6">
+            <!-- v-card: Estrutura Financeira -->
+            <div class="v-card p-6">
+                <h2 class="text-lg font-bold mb-5 flex items-center gap-2 text-[#6200ee]">
+                    <i class="fa-solid fa-sliders text-xl"></i> Pilares do Mês
+                </h2>
+                <div class="space-y-5">
+                    <!-- Input Estilizado com Máscara -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Salário Recebido</label>
+                        <div class="relative rounded-lg shadow-sm">
+                            <input type="text" id="input-salario" class="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-base font-medium focus:ring-2 focus:ring-[#6200ee] focus:border-transparent focus:bg-white focus:outline-none transition-all">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Reserva Líquida Atual</label>
+                        <div class="relative rounded-lg shadow-sm">
+                            <input type="text" id="input-reserva" class="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-base font-medium focus:ring-2 focus:ring-[#6200ee] focus:border-transparent focus:bg-white focus:outline-none transition-all">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- v-card: Resumo do Mês -->
+            <div class="v-card p-6 space-y-4">
+                <h3 class="font-bold text-slate-700 uppercase tracking-wider text-xs border-b pb-2">
+                    Balanço de <span id="resumo-nome-mes" class="text-[#6200ee]"></span>
+                </h3>
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-slate-500 font-medium">Previsão de Gastos:</span>
+                    <span id="resumo-gastos-total" class="font-bold text-slate-800 text-base">R$ 0,00</span>
+                </div>
+                <div class="flex justify-between items-center text-sm bg-emerald-50 px-3 py-2 rounded-xl">
+                    <span class="text-emerald-700 font-bold flex items-center gap-1.5"><i class="fa-solid fa-check-double"></i> Total Pago:</span>
+                    <span id="resumo-gastos-pagos" class="font-extrabold text-emerald-700 text-base">R$ 0,00</span>
+                </div>
+                <div class="flex justify-between items-center text-sm bg-amber-50 px-3 py-2 rounded-xl">
+                    <span class="text-amber-700 font-bold flex items-center gap-1.5"><i class="fa-solid fa-hourglass-half"></i> Em Aberto:</span>
+                    <span id="resumo-gastos-pendentes" class="font-extrabold text-amber-700 text-base">R$ 0,00</span>
+                </div>
+                <div class="pt-2 border-t flex justify-between items-center">
+                    <span class="text-sm font-bold text-slate-600">Sobra Real:</span>
+                    <span id="resumo-sobra" class="text-lg font-black text-emerald-600">R$ 0,00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUNA 2: Gestão de Contas (Listagem) -->
+        <div>
+            <div class="v-card p-6 h-full flex flex-col">
+                <h2 class="text-lg font-bold mb-4 flex items-center gap-2 text-red-600">
+                    <i class="fa-solid fa-file-invoice-dollar text-xl"></i> Livro de Contas
+                </h2>
+
+                <!-- Form Adicionar Gasto -->
+                <form id="form-gasto" class="space-y-3 mb-6 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <input type="text" id="gasto-nome" placeholder="Descrição da conta" required class="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-red-400 focus:outline-none bg-white transition-all">
+                    <input type="text" id="gasto-valor" placeholder="Valor R$ 0,00" required class="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-red-400 focus:outline-none bg-white transition-all">
+                    
+                    <button type="submit" class="v-btn w-full bg-red-600 hover:bg-red-700 text-white py-3.5 rounded-xl shadow-md hover:shadow-lg text-sm transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-plus text-base"></i> Adicionar Conta
+                    </button>
+                </form>
+
+                <!-- Listagem M3 -->
+                <div class="flex-1 space-y-5 overflow-y-auto max-h-[420px] pr-1">
+                    <div>
+                        <h4 class="text-[11px] uppercase font-bold text-amber-600 tracking-widest mb-2 flex items-center gap-1.5">
+                            <i class="fa-solid fa-circle-exclamation"></i> Pendentes
+                        </h4>
+                        <div id="lista-gastos-pendentes" class="space-y-2"></div>
+                    </div>
+                    <div>
+                        <h4 class="text-[11px] uppercase font-bold text-emerald-600 tracking-widest mb-2 flex items-center gap-1.5">
+                            <i class="fa-solid fa-circle-check"></i> Liquidadas
+                        </h4>
+                        <div id="lista-gastos-pagos" class="space-y-2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUNA 3: Simulador de Grandes Desejos / Planos -->
+        <div>
+            <div class="v-card p-6 h-full flex flex-col">
+                <h2 class="text-lg font-bold mb-4 flex items-center gap-2 text-emerald-600">
+                    <i class="fa-solid fa-bullseye text-xl"></i> Painel de Desejos
+                </h2>
+
+                <!-- Form Adicionar Plano -->
+                <form id="form-plano" class="space-y-3 mb-6 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <input type="text" id="plano-nome" placeholder="O que deseja adquirir? (Ex: Guitarra)" required class="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-400 focus:outline-none bg-white transition-all">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <input type="text" id="plano-valor" placeholder="Preço do Item" required class="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-400 focus:outline-none bg-white transition-all">
+                        <input type="text" id="plano-seguranca" placeholder="Min. na Reserva" required class="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-400 focus:outline-none bg-white transition-all">
+                    </div>
+                    <button type="submit" class="v-btn w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl shadow-md hover:shadow-lg text-sm transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-seedling text-base"></i> Simular Objetivo
+                    </button>
+                </form>
+
+                <!-- Listagem de Planos -->
+                <div id="lista-planos" class="flex-1 space-y-4 overflow-y-auto max-h-[420px] pr-1"></div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const mesesDoAno = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+        const mesAtualSistema = mesesDoAno[new Date().getMonth()];
+
+        let estado = JSON.parse(localStorage.getItem('my_finances_material_data')) || {
+            reservaGlobal: 10000,
+            mesSelecionado: mesAtualSistema,
+            meses: {},
+            planos: [
+                { id: 1, nome: 'Guitarra Fender', valor: 4500, seguranca: 8000, celebrado: false }
+            ]
+        };
+
+        function iniciarMesSeNaoExistir(mes) {
+            if (!estado.meses[mes]) {
+                estado.meses[mes] = { salario: 5000, gastos: [] };
+            }
+        }
+
+        // --- SISTEMA DE MÁSCARA MONETÁRIA DE ALTA PERFORMANCE ---
+        function formatarCampoMoeda(elemento) {
+            let valor = elemento.value.replace(/\D/g, "");
+            if (valor === "") {
+                elemento.value = "";
+                return 0;
+            }
+            let valorNumerico = parseFloat(valor) / 100;
+            elemento.value = valorNumerico.toLocaleString("pt-BR", {
+                style: "currency",
+                currency: "BRL"
+            });
+            return valorNumerico;
+        }
+
+        function converterTextoParaNumero(texto) {
+            if (!texto) return 0;
+            let limpo = texto.replace(/[^\d]/g, "");
+            return parseFloat(limpo) / 100 || 0;
+        }
+
+        function definirValorInputComMascara(id, valor) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.value = valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+            }
+        }
+
+        // Elementos DOM
+        const seletorMes = document.getElementById('seletor-mes');
+        const inputSalario = document.getElementById('input-salario');
+        const inputReserva = document.getElementById('input-reserva');
+        const formGasto = document.getElementById('form-gasto');
+        const formPlano = document.getElementById('form-plano');
+
+        window.addEventListener('DOMContentLoaded', () => {
+            seletorMes.value = estado.mesSelecionado;
+            
+            // Ativa ouvintes de máscaras nos inputs monetários
+            [inputSalario, inputReserva, document.getElementById('gasto-valor'), document.getElementById('plano-valor'), document.getElementById('plano-seguranca')].forEach(input => {
+                input.addEventListener('input', (e) => formatarCampoMoeda(e.target));
+            });
+
+            configurarEventos();
+            render();
+        });
+
+        function configurarEventos() {
+            seletorMes.addEventListener('change', (e) => {
+                estado.mesSelecionado = e.target.value;
+                salvarEAtualizar();
+            });
+
+            inputSalario.addEventListener('input', () => {
+                iniciarMesSeNaoExistir(estado.mesSelecionado);
+                estado.meses[estado.mesSelecionado].salario = converterTextoParaNumero(inputSalario.value);
+                localStorage.setItem('my_finances_material_data', JSON.stringify(estado));
+                atualizarCalculos();
+            });
+
+            inputReserva.addEventListener('input', () => {
+                estado.reservaGlobal = converterTextoParaNumero(inputReserva.value);
+                localStorage.setItem('my_finances_material_data', JSON.stringify(estado));
+                atualizarCalculos();
+            });
+
+            formGasto.addEventListener('submit', (e) => {
+                e.preventDefault();
+                iniciarMesSeNaoExistir(estado.mesSelecionado);
+                estado.meses[estado.mesSelecionado].gastos.push({
+                    id: Date.now(),
+                    nome: document.getElementById('gasto-nome').value,
+                    valor: converterTextoParaNumero(document.getElementById('gasto-valor').value),
+                    pago: false
+                });
+                formGasto.reset();
+                salvarEAtualizar();
+            });
+
+            formPlano.addEventListener('submit', (e) => {
+                e.preventDefault();
+                estado.planos.push({
+                    id: Date.now(),
+                    nome: document.getElementById('plano-nome').value,
+                    valor: converterTextoParaNumero(document.getElementById('plano-valor').value),
+                    seguranca: converterTextoParaNumero(document.getElementById('plano-seguranca').value),
+                    celebrado: false
+                });
+                formPlano.reset();
+                salvarEAtualizar();
+            });
+        }
+
+        function copiarGastoParaProximoMes(id) {
+            const mesAtualIdx = mesesDoAno.indexOf(estado.mesSelecionado);
+            if (mesAtualIdx === 11) return;
+            
+            const proximoMesNome = mesesDoAno[mesAtualIdx + 1];
+            const gastoOriginal = estado.meses[estado.mesSelecionado].gastos.find(g => g.id === id);
+            
+            if (gastoOriginal) {
+                iniciarMesSeNaoExistir(proximoMesNome);
+                estado.meses[proximoMesNome].gastos.push({
+                    id: Date.now() + 1,
+                    nome: gastoOriginal.nome,
+                    valor: gastoOriginal.valor,
+                    pago: false
+                });
+                salvarEAtualizar();
+            }
+        }
+
+        function replicarGastoRestoDoAno(id) {
+            const mesAtualIdx = mesesDoAno.indexOf(estado.mesSelecionado);
+            const gastoOriginal = estado.meses[estado.mesSelecionado].gastos.find(g => g.id === id);
+            
+            if (gastoOriginal && mesAtualIdx < 11) {
+                for (let i = mesAtualIdx + 1; i < mesesDoAno.length; i++) {
+                    let nomeMesFuturo = mesesDoAno[i];
+                    iniciarMesSeNaoExistir(nomeMesFuturo);
+                    if (!estado.meses[nomeMesFuturo].gastos.some(g => g.nome === gastoOriginal.nome)) {
+                        estado.meses[nomeMesFuturo].gastos.push({
+                            id: Date.now() + i,
+                            nome: gastoOriginal.nome,
+                            valor: gastoOriginal.valor,
+                            pago: false
+                        });
+                    }
+                }
+                salvarEAtualizar();
+            }
+        }
+
+        function alternarStatusGasto(id) {
+            const mes = estado.meses[estado.mesSelecionado];
+            const gasto = mes.gastos.find(g => g.id === id);
+            if (gasto) {
+                gasto.pago = !gasto.pago;
+                salvarEAtualizar();
+            }
+        }
+
+        function removerGasto(id) {
+            const mes = estado.meses[estado.mesSelecionado];
+            mes.gastos = mes.gastos.filter(g => g.id !== id);
+            salvarEAtualizar();
+        }
+
+        function removerPlano(id) {
+            estado.planos = estado.planos.filter(p => p.id !== id);
+            salvarEAtualizar();
+        }
+
+        function salvarEAtualizar() {
+            localStorage.setItem('my_finances_material_data', JSON.stringify(estado));
+            render();
+        }
+
+        function formatarBRL(valor) {
+            return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        // Separação de responsabilidade para evitar lags ao digitar nos inputs principais
+        function atualizarCalculos() {
+            const mesAtual = estado.mesSelecionado;
+            iniciarMesSeNaoExistir(mesAtual);
+            const dadosMes = estado.meses[mesAtual];
+            
+            const totalGastosGeral = dadosMes.gastos.reduce((acc, g) => acc + g.valor, 0);
+            const sobraSalario = dadosMes.salario - totalGastosGeral;
+            const saldoLivre = estado.reservaGlobal + sobraSalario;
+
+            document.getElementById('saldo-livre').innerText = formatarBRL(saldoLivre);
+            document.getElementById('resumo-sobra').innerText = formatarBRL(sobraSalario);
+            
+            // Re-renderiza exclusivamente os cards de desejo para atualizar as barras de progresso ao digitar
+            renderizarCardsDesejo(saldoLivre);
+        }
+
+        function render() {
+            const mesAtual = estado.mesSelecionado;
+            iniciarMesSeNaoExistir(mesAtual);
+            
+            document.getElementById('resumo-nome-mes').innerText = mesAtual;
+            
+            // Preenche os inputs principais respeitando a máscara
+            definirValorInputComMascara('input-salario', estado.meses[mesAtual].salario);
+            definirValorInputComMascara('input-reserva', estado.reservaGlobal);
+
+            const dadosMes = estado.meses[mesAtual];
+            const totalGastosGeral = dadosMes.gastos.reduce((acc, g) => acc + g.valor, 0);
+            const totalGastosPagos = dadosMes.gastos.filter(g => g.pago).reduce((acc, g) => acc + g.valor, 0);
+            const totalGastosPendentes = totalGastosGeral - totalGastosPagos;
+            const sobraSalario = dadosMes.salario - totalGastosGeral;
+            const saldoLivre = estado.reservaGlobal + sobraSalario;
+
+            document.getElementById('saldo-livre').innerText = formatarBRL(saldoLivre);
+            document.getElementById('resumo-gastos-total').innerText = formatarBRL(totalGastosGeral);
+            document.getElementById('resumo-gastos-pagos').innerText = formatarBRL(totalGastosPagos);
+            document.getElementById('resumo-gastos-pendentes').innerText = formatarBRL(totalGastosPendentes);
+            document.getElementById('resumo-sobra').innerText = formatarBRL(sobraSalario);
+
+            // Renderizar Contas (Pagas e Pendentes)
+            const boxPendentes = document.getElementById('lista-gastos-pendentes');
+            const boxPagos = document.getElementById('lista-gastos-pagos');
+            boxPendentes.innerHTML = '';
+            boxPagos.innerHTML = '';
+
+            dadosMes.gastos.forEach(gasto => {
+                const item = document.createElement('div');
+                item.className = "gasto-row flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 text-sm shadow-sm transition-all hover:border-[#6200ee]/40";
+                
+                if (!gasto.pago) {
+                    item.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" onclick="alternarStatusGasto(${gasto.id})" class="rounded text-[#6200ee] focus:ring-[#6200ee] w-4 h-4 cursor-pointer">
+                            <span class="font-medium text-slate-800">${gasto.nome}</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="font-bold text-slate-700">${formatarBRL(gasto.valor)}</span>
+                            
+                            <div class="action-menu flex items-center bg-slate-100 p-1 rounded-lg gap-1 border">
+                                <button onclick="copiarGastoParaProximoMes(${gasto.id})" title="Copiar para próximo mês" class="text-indigo-600 hover:bg-white p-1.5 rounded-md text-xs transition-all"><i class="fa-solid fa-angle-right"></i> +1 Mês</button>
+                                <button onclick="replicarGastoRestoDoAno(${gasto.id})" title="Replicar até dezembro" class="text-purple-600 hover:bg-white p-1.5 rounded-md text-xs transition-all"><i class="fa-solid fa-calendar-days"></i> Fixar Anual</button>
+                            </div>
+
+                            <button onclick="removerGasto(${gasto.id})" class="text-slate-300 hover:text-red-500 p-1"><i class="fa-solid fa-trash-can"></i></button>
+                        </div>
+                    `;
+                    boxPendentes.appendChild(item);
+                } else {
+                    item.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" checked onclick="alternarStatusGasto(${gasto.id})" class="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer">
+                            <span class="line-through text-slate-400 font-light">${gasto.nome}</span>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <span class="font-medium text-slate-400 line-through">${formatarBRL(gasto.valor)}</span>
+                            <button onclick="removerGasto(${gasto.id})" class="text-slate-300 hover:text-red-500"><i class="fa-solid fa-trash-can"></i></button>
+                        </div>
+                    `;
+                    boxPagos.appendChild(item);
+                }
+            });
+
+            if(boxPendentes.children.length === 0) boxPendentes.innerHTML = '<p class="text-xs text-slate-400 italic py-2 text-center">Nenhuma pendência pendente!</p>';
+            if(boxPagos.children.length === 0) boxPagos.innerHTML = '<p class="text-xs text-slate-400 italic py-2 text-center">Nenhuma conta liquidada.</p>';
+
+            renderizarCardsDesejo(saldoLivre);
+        }
+
+        function renderizarCardsDesejo(saldoLivre) {
+            const boxPlanos = document.getElementById('lista-planos');
+            boxPlanos.innerHTML = '';
+
+            estado.planos.forEach(plano => {
+                const metaTotalNecessaria = plano.valor + plano.seguranca;
+                let percentual = (saldoLivre / metaTotalNecessaria) * 100;
+                percentual = Math.min(Math.max(percentual, 0), 100);
+
+                const podeComprar = saldoLivre >= metaTotalNecessaria;
+                const sobraPosCompra = saldoLivre - plano.valor;
+
+                const itemPlano = document.createElement('div');
+                itemPlano.className = `p-4 rounded-xl border-2 transition-all ${podeComprar ? 'bg-emerald-50/50 border-emerald-400 shadow-sm' : 'bg-white border-slate-200'}`;
+                
+                itemPlano.innerHTML = `
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                                ${plano.nome}
+                                ${podeComprar ? '<span class="text-[10px] bg-emerald-600 text-white font-black px-2 py-0.5 rounded-full uppercase tracking-wide">Liberado</span>' : ''}
+                            </h4>
+                            <p class="text-[11px] text-slate-500 mt-0.5">
+                                Custo: <b class="text-slate-700">${formatarBRL(plano.valor)}</b> • Manter Min.: <b class="text-slate-700">${formatarBRL(plano.seguranca)}</b>
+                            </p>
+                        </div>
+                        <button onclick="removerPlano(${plano.id})" class="text-slate-300 hover:text-red-500 p-1"><i class="fa-solid fa-xmark text-sm"></i></button>
+                    </div>
+
+                    <div class="w-full bg-slate-200 h-3 rounded-full overflow-hidden mb-2 shadow-inner">
+                        <div class="progress-bar h-full ${podeComprar ? 'bg-emerald-500' : 'bg-[#6200ee]'}" style="width: ${percentual}%"></div>
+                    </div>
+
+                    <div class="flex justify-between text-xs text-slate-500 font-medium">
+                        <span>Progresso: <b class="${podeComprar ? 'text-emerald-600' : 'text-[#6200ee]'}">${percentual.toFixed(0)}%</b></span>
+                        <span>Falta: <b>${podeComprar ? 'R$ 0,00' : formatarBRL(metaTotalNecessaria - saldoLivre)}</b></span>
+                    </div>
+
+                    <div class="mt-3 pt-2.5 border-t border-dashed ${podeComprar ? 'border-emerald-300 text-emerald-800' : 'border-slate-200 text-slate-500'} text-[11px] flex justify-between items-center">
+                        <span>Reserva estimada pós-compra:</span>
+                        <span class="font-bold text-xs ${sobraPosCompra < plano.seguranca ? 'text-amber-600' : 'text-emerald-600'}">${formatarBRL(sobraPosCompra)}</span>
+                    </div>
+                `;
+
+                if (podeComprar && !plano.celebrado) {
+                    plano.celebrado = true;
+                    setTimeout(() => {
+                        confetti({ particleCount: 70, spread: 60, origin: { y: 0.8 } });
+                    }, 200);
+                }
+
+                boxPlanos.appendChild(itemPlano);
+            });
+        }
+    </script>
+</body>
+</html>
