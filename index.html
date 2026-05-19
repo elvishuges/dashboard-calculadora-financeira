@@ -2,221 +2,290 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyFinances - Mobile First Pro</title>
-    <!-- Tailwind CSS -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Maneki por Hugesoft - Gestão Financeira Inteligente</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0f172a">
+    
+    <!-- Tailwind CSS & Font Awesome -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <!-- Canvas Confetti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
         
-        body { font-family: 'Roboto', sans-serif; background-color: #f4f6f9; }
-        .v-gradient { background: linear-gradient(135deg, #6200ee 0%, #4a00b0 100%); }
-        
-        .v-card {
-            background: #ffffff;
-            border-radius: 24px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #f8fafc;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
         }
 
-        /* Animação suave de troca de meses */
-        .tab-btn { position: relative; transition: all 0.2s ease; }
-        .tab-btn.active { color: #6200ee; font-weight: 700; }
-        .tab-btn.active::after {
-            content: ''; position: absolute; bottom: 0; left: 20%; width: 60%; height: 3px; background-color: #6200ee; border-radius: 3px 3px 0 0;
+        .card-classico {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.03), 0 1px 2px -1px rgba(0, 0, 0, 0.03);
+            border-radius: 14px;
         }
 
-        .progress-bar { transition: width 0.5s ease-in-out; }
+        .tab-mes {
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .tab-mes.active {
+            color: #6366f1; /* Indigo */
+            font-weight: 700;
+        }
+        .tab-mes.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2.5px;
+            background: linear-gradient(90deg, #6366f1, #a855f7);
+            border-radius: 2px;
+        }
+
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* Estilos específicos para controle de telas mobile */
+        /* Animação de troca de mês */
+        .troca-mes-anima {
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+        .troca-mes-esconder {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+
         @media (max-width: 1023px) {
             .mobile-screen { display: none; }
             .mobile-screen.active-screen { display: block; }
         }
     </style>
 </head>
-<body class="text-slate-950 min-h-screen pb-24 lg:pb-12">
+<body class="text-slate-900 min-h-screen pb-24 lg:pb-16 flex flex-col">
 
-    <!-- OVERLAY DE PRIMEIRA VEZ (ONBOARDING) -->
-    <div id="welcome-screen" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-slate-100">
-            <div class="text-center mb-6">
-                <div class="inline-flex p-4 bg-indigo-50 rounded-2xl text-[#6200ee] mb-3">
-                    <i class="fa-solid fa-mobile-screen-button text-4xl"></i>
-                </div>
-                <h2 class="text-2xl font-black text-slate-800">MyFinances Mobile-First</h2>
-                <p class="text-slate-500 text-sm mt-1">Agora adaptado para telas mobile com navegação por gestos/abas e simulador de parcelas!</p>
-            </div>
-            
-            <div class="space-y-4 text-sm text-slate-600 mb-6">
-                <div class="flex gap-3 items-start">
-                    <div class="text-emerald-500 mt-0.5"><i class="fa-solid fa-square-poll-horizontal"></i></div>
-                    <p><b>Abas Fixas no Footer:</b> Alterne facilmente entre Resumo, Contas e Desejos diretamente da barra inferior no celular.</p>
-                </div>
-                <div class="flex gap-3 items-start">
-                    <div class="text-[#6200ee] mt-0.5"><i class="fa-solid fa-credit-card"></i></div>
-                    <p><b>Simulador de Parcelas:</b> Abra um desejo e parcele em até 12x para descobrir o valor da parcela mensal e o impacto real na sua reserva.</p>
-                </div>
-                <div class="flex gap-3 items-start bg-indigo-50 p-3 rounded-xl">
-                    <div class="text-indigo-600 mt-0.5"><i class="fa-solid fa-database"></i></div>
-                    <p class="text-indigo-950 text-xs"><b>Privacidade local:</b> Seus dados permanecem salvos em segurança no seu próprio navegador via <b>LocalStorage</b>.</p>
-                </div>
-            </div>
-
-            <button onclick="fecharWelcome()" class="w-full bg-[#6200ee] hover:bg-[#4a00b0] text-white font-bold py-4 rounded-xl shadow-lg transition-all uppercase tracking-wider text-xs">
-                Entrar no App
-            </button>
-        </div>
-    </div>
-
-    <!-- APP BAR PRINCIPAL -->
-    <header class="v-gradient text-white py-4 px-4 sm:px-6 shadow-md mb-4 sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-2.5">
-                <div class="bg-white/20 p-2 rounded-xl">
-                    <i class="fa-solid fa-receipt text-xl text-amber-300"></i>
+    <!-- TOPO COMPACTO HUGESOFT / MANEKI -->
+    <header class="bg-slate-900 text-white py-3 px-4 shadow-md border-b border-slate-800 sticky top-0 lg:relative z-50">
+        <div class="max-w-7xl mx-auto flex justify-between items-center gap-2">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-tr from-indigo-500 to-purple-500 w-7 h-7 rounded-lg flex items-center justify-center shadow-sm">
+                    <i class="fa-solid fa-cat text-white text-xs"></i>
                 </div>
                 <div>
-                    <h1 class="text-lg sm:text-xl font-black tracking-wide">MyFinances</h1>
-                    <p class="text-indigo-200 text-[10px] sm:text-xs font-light">Estratégia & Controle</p>
+                    <h1 class="text-sm font-bold tracking-tight flex items-center gap-1.5">
+                        Maneki <span class="text-[9px] text-slate-400 font-medium px-1 bg-slate-800 rounded border border-slate-700/60">by hugesoft</span>
+                    </h1>
                 </div>
+            </div>
+
+            <!-- INDICADOR DE DATA ATUAL COMPLETA -->
+            <div class="hidden sm:flex items-center gap-2 bg-slate-800/40 border border-slate-700/30 px-3 py-1 rounded-full text-[11px] text-slate-300">
+                <i class="fa-regular fa-calendar-days text-indigo-400"></i>
+                <span id="data-atual-topo" class="font-medium">Carregando data...</span>
             </div>
             
             <div class="flex items-center gap-3">
-                <button onclick="abrirWelcome()" class="bg-white/10 hover:bg-white/20 p-2.5 rounded-xl transition-all" title="Ajuda">
-                    <i class="fa-solid fa-circle-question text-base"></i>
+                <button onclick="confirmarLimpezaDados()" class="text-slate-500 hover:text-rose-400 text-[11px] font-medium transition-colors hidden sm:inline-block">
+                    <i class="fa-solid fa-trash-can mr-1"></i> Redefinir
                 </button>
-                <div class="bg-emerald-600 rounded-xl px-3 py-1.5 text-right shadow-inner">
-                    <span class="text-[9px] uppercase tracking-wider text-emerald-100 block font-bold">Saldo Estimado</span>
-                    <span id="saldo-livre" class="text-base sm:text-lg font-black text-white">R$ 0,00</span>
+                <div class="bg-slate-800/80 rounded-lg px-2.5 py-1 border border-slate-700/50 flex items-center gap-2">
+                    <span class="text-[9px] uppercase tracking-wider text-purple-300 font-bold">Reserva:</span>
+                    <span id="saldo-livre" class="text-xs font-bold text-emerald-400 font-mono">R$ 0,00</span>
                 </div>
             </div>
         </div>
     </header>
 
-    <!-- CALENDÁRIO HORIZONTAL ULTRA RÁPIDO -->
-    <nav class="max-w-7xl mx-auto px-4 mb-4">
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-1 flex overflow-x-auto hide-scrollbar">
-            <div id="tabs-container" class="flex w-full min-w-max"></div>
+    <!-- ABAS DO CALENDÁRIO -->
+    <nav class="bg-white border-b border-slate-200 shadow-xs mb-4">
+        <div class="max-w-7xl mx-auto px-4">
+            <div id="tabs-container" class="flex gap-6 overflow-x-auto hide-scrollbar h-10 items-center text-xs font-medium text-slate-500"></div>
         </div>
     </nav>
 
-    <!-- GRID DOS MÓDULOS DE CONTEÚDO (Mapeado para SPA no Mobile) -->
-    <main class="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- INDICADOR DE DATA PARA DISPOSITIVOS MÓVEIS -->
+    <div class="sm:hidden px-4 mb-4">
+        <div class="bg-white border border-slate-200 rounded-xl p-2.5 flex items-center justify-between text-xs text-slate-600">
+            <span class="font-semibold text-slate-400 uppercase text-[10px] tracking-wider">Hoje</span>
+            <span id="data-atual-mobile" class="font-bold text-slate-700">Carregando...</span>
+        </div>
+    </div>
+
+    <!-- GRID PRINCIPAL -->
+    <main id="conteudo-principal" class="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 w-full troca-mes-anima">
         
-        <!-- TELA 1: PILARES & RESUMO -->
+        <!-- COLUNA 1: BALANÇO E PARÂMETROS -->
         <div id="tela-resumo" class="mobile-screen active-screen space-y-6">
-            <div class="v-card p-5">
-                <h2 class="text-sm font-bold mb-4 flex items-center gap-2 text-[#6200ee] uppercase tracking-wider">
-                    <i class="fa-solid fa-wallet text-base"></i> Configuração Base
+            
+            <!-- Parâmetros de Entrada -->
+            <div class="card-classico p-5">
+                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-1.5">
+                    <i class="fa-solid fa-sliders text-indigo-500"></i> Parâmetros Operacionais
                 </h2>
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Salário Líquido (Mês)</label>
-                        <input type="text" id="input-salario" class="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-base font-semibold focus:ring-2 focus:ring-[#6200ee] focus:outline-none transition-all">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1.5">Receita Mensal Líquida</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-2.5 text-slate-400 text-sm font-medium">R$</span>
+                            <input type="text" id="input-salario" placeholder="0,00" class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none transition-all text-slate-800">
+                        </div>
                     </div>
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Reserva de Emergência Atual</label>
-                        <input type="text" id="input-reserva" class="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl text-base font-semibold focus:ring-2 focus:ring-[#6200ee] focus:outline-none transition-all">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1.5">Aporte / Fundo de Reserva</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-2.5 text-slate-400 text-sm font-medium">R$</span>
+                            <input type="text" id="input-reserva" placeholder="0,00" class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none transition-all text-slate-800">
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="v-card p-5 space-y-4">
-                <h3 class="font-bold text-slate-700 uppercase tracking-wider text-xs border-b pb-2">
-                    Balanço Estrutural: <span id="resumo-nome-mes" class="text-[#6200ee] font-black"></span>
+            <!-- Demonstrativo do Mês -->
+            <div class="card-classico p-5 bg-gradient-to-b from-white to-slate-50/50">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-1.5">
+                    <i class="fa-solid fa-chart-pie text-purple-500"></i> Demonstrativo de <span id="resumo-nome-mes" class="text-slate-700 font-bold capitalize"></span>
                 </h3>
-                <div class="flex justify-between items-center text-sm">
-                    <span class="text-slate-500">Compromissos Mapeados:</span>
-                    <span id="resumo-gastos-total" class="font-bold text-slate-800">R$ 0,00</span>
-                </div>
-                <div class="flex justify-between items-center text-sm bg-emerald-50 px-3 py-2.5 rounded-xl">
-                    <span class="text-emerald-700 font-bold"><i class="fa-solid fa-check"></i> Total Liquidado:</span>
-                    <span id="resumo-gastos-pagos" class="font-bold text-emerald-700">R$ 0,00</span>
-                </div>
-                <div class="flex justify-between items-center text-sm bg-amber-50 px-3 py-2.5 rounded-xl">
-                    <span class="text-amber-700 font-bold"><i class="fa-solid fa-hourglass"></i> Restante em Aberto:</span>
-                    <span id="resumo-gastos-pendentes" class="font-bold text-amber-700">R$ 0,00</span>
-                </div>
-                <div class="pt-2 border-t flex justify-between items-center">
-                    <span class="text-sm font-bold text-slate-600">Sobra Esperada:</span>
-                    <span id="resumo-sobra" class="text-lg font-black text-emerald-600">R$ 0,00</span>
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between items-center pb-2 border-b border-slate-100">
+                        <span class="text-slate-500">Planejado em Saídas:</span>
+                        <span id="resumo-gastos-total" class="font-semibold text-slate-800 font-mono">R$ 0,00</span>
+                    </div>
+                    <div class="flex justify-between items-center pb-2 border-b border-slate-100 text-emerald-600">
+                        <span><i class="fa-regular fa-circle-check mr-1"></i> Total Liquidado:</span>
+                        <span id="resumo-gastos-paid" class="font-bold font-mono">R$ 0,00</span>
+                    </div>
+                    
+                    <div class="pt-2 flex flex-col gap-3">
+                        <div>
+                            <span class="text-xs text-slate-400 block mb-0.5">Saldo Remanescente</span>
+                            <span id="resumo-sobra" class="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent font-mono">R$ 0,00</span>
+                        </div>
+                        <div id="container-acao-sobra" class="w-full"></div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- TELA 2: LIVRO DE CONTAS -->
+        <!-- COLUNA 2: CONTROLE DE DESPESAS -->
         <div id="tela-contas" class="mobile-screen space-y-4">
-            <div class="v-card p-5 h-full flex flex-col">
-                <h2 class="text-sm font-bold mb-4 flex items-center gap-2 text-red-600 uppercase tracking-wider">
-                    <i class="fa-solid fa-file-invoice text-base"></i> Adicionar & Agendar Contas
+            <div class="card-classico p-5 flex flex-col min-h-[500px]">
+                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-1.5">
+                    <i class="fa-solid fa-list-check text-indigo-500"></i> Fluxo de Despesas
                 </h2>
 
-                <form id="form-gasto" class="space-y-3 mb-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
-                    <input type="text" id="gasto-nome" placeholder="Descrição (ex: Aluguel, Mercado)" required class="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-red-400 focus:outline-none transition-all">
-                    <input type="text" id="gasto-valor" placeholder="Valor R$ 0,00" required class="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-red-400 focus:outline-none transition-all">
-                    <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white py-3.5 rounded-xl font-bold tracking-wide text-xs uppercase transition-all">
+                <form id="form-gasto" class="space-y-3 mb-5 p-3.5 bg-slate-50/80 rounded-xl border border-slate-200">
+                    <div>
+                        <input type="text" id="gasto-nome" list="despesas-padrao" placeholder="Descrição do compromisso" required class="w-full px-3 py-2 bg-white rounded-lg text-sm border border-slate-200 focus:border-indigo-500 focus:outline-none text-slate-800">
+                        <datalist id="despesas-padrao">
+                            <option value="Água"></option><option value="Luz"></option><option value="Internet"></option>
+                            <option value="Aluguel"></option><option value="Mercado"></option><option value="Cartão de Crédito"></option>
+                        </datalist>
+                    </div>
+
+                    <div class="flex gap-2 items-center">
+                        <div class="w-1/2 relative">
+                            <span class="absolute left-2.5 top-2 text-slate-400 text-xs">R$</span>
+                            <input type="text" id="gasto-valor" placeholder="0,00" required class="w-full pl-7 pr-2 py-1.5 bg-white rounded-lg text-sm font-semibold border border-slate-200 focus:border-indigo-500 focus:outline-none text-slate-800">
+                        </div>
+                        
+                        <div class="w-1/2 flex bg-slate-200/50 p-0.5 rounded-lg border border-slate-200/60 justify-between">
+                            <button type="button" id="btn-prop-mes" onclick="setPropagacao('proximo')" class="flex-1 text-[10px] font-bold py-1 rounded-md text-indigo-600 transition-all bg-white shadow-xs">
+                                + Próx. Mês
+                            </button>
+                            <button type="button" id="btn-prop-ano" onclick="setPropagacao('ano')" class="flex-1 text-[10px] font-semibold py-1 rounded-md text-slate-500 hover:text-slate-800 transition-all">
+                                Ano Todo
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-2 rounded-lg font-semibold text-xs tracking-wide uppercase transition-colors shadow-xs">
                         <i class="fa-solid fa-plus mr-1"></i> Incluir Despesa
                     </button>
                 </form>
 
-                <div class="flex-1 space-y-4 overflow-y-auto max-h-[440px] pr-1">
+                <div class="flex-1 space-y-4 overflow-y-auto max-h-[340px] pr-1 hide-scrollbar">
                     <div>
-                        <h4 class="text-[10px] uppercase font-bold text-amber-600 tracking-widest mb-2"><i class="fa-solid fa-clock mr-1"></i> Pendências</h4>
-                        <div id="lista-gastos-pendentes" class="space-y-2.5"></div>
+                        <h4 class="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-2">A vencer</h4>
+                        <div id="lista-gastos-pendentes" class="space-y-2"></div>
                     </div>
                     <div class="pt-2">
-                        <h4 class="text-[10px] uppercase font-bold text-emerald-600 tracking-widest mb-2"><i class="fa-solid fa-check-circle mr-1"></i> Resolvidos</h4>
-                        <div id="lista-gastos-pagos" class="space-y-2"></div>
+                        <h4 class="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-2">Liquidadas</h4>
+                        <div id="lista-gastos-pagos" class="space-y-1.5"></div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- TELA 3: PAINEL DE DESEJOS COM FRAME DE PARCELAMENTO -->
+        <!-- COLUNA 3: PROJETOS / AQUISIÇÕES -->
         <div id="tela-desejos" class="mobile-screen space-y-4">
-            <div class="v-card p-5 h-full flex flex-col">
-                <h2 class="text-sm font-bold mb-4 flex items-center gap-2 text-emerald-600 uppercase tracking-wider">
-                    <i class="fa-solid fa-bullseye text-base"></i> Simulador de Objetivos
+            <div class="card-classico p-5 flex flex-col min-h-[500px]">
+                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-1.5">
+                    <i class="fa-solid fa-bullseye text-purple-500"></i> Metas de Aquisição
                 </h2>
 
-                <form id="form-plano" class="space-y-3 mb-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
-                    <input type="text" id="plano-nome" placeholder="Objetivo (ex: Macbook, Viagem)" required class="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-400 focus:outline-none transition-all">
-                    <div class="grid grid-cols-2 gap-3">
-                        <input type="text" id="plano-valor" placeholder="Valor Total" required class="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-400 focus:outline-none transition-all">
-                        <input type="text" id="plano-seguranca" placeholder="Min. Reserva" required class="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-400 focus:outline-none transition-all">
+                <form id="form-plano" class="space-y-3 mb-4 p-3.5 bg-slate-50/80 rounded-xl border border-slate-200">
+                    <input type="hidden" id="plano-id-edicao">
+                    <input type="text" id="plano-nome" placeholder="Objetivo ou Destinação" required class="w-full px-3 py-2 bg-white rounded-lg text-sm border border-slate-200 focus:border-indigo-500 focus:outline-none">
+                    <input type="url" id="plano-url" placeholder="Hiperlink de referência (opcional)" class="w-full px-3 py-2 bg-white rounded-lg text-sm border border-slate-200 focus:border-indigo-500 focus:outline-none">
+                    
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" id="plano-valor" placeholder="Valor Total" required class="w-full px-3 py-2 bg-white rounded-lg text-sm font-medium border border-slate-200 focus:border-indigo-500 focus:outline-none">
+                        <input type="text" id="plano-seguranca" placeholder="Fundo Margem" required class="w-full px-3 py-2 bg-white rounded-lg text-sm font-medium border border-slate-200 focus:border-indigo-500 focus:outline-none">
                     </div>
-                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-bold tracking-wide text-xs uppercase transition-all">
-                        <i class="fa-solid fa-gauge mr-1"></i> Lançar Desejo
+                    <button type="submit" id="btn-submit-plano" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg font-semibold text-xs tracking-wide uppercase transition-colors shadow-xs">
+                        <i class="fa-solid fa-bookmark mr-1"></i> Registrar Meta
                     </button>
                 </form>
 
-                <div id="lista-planos" class="flex-1 space-y-4 overflow-y-auto max-h-[440px] pr-1"></div>
+                <div id="lista-planos" class="flex-1 space-y-3 overflow-y-auto max-h-[340px] pr-1 hide-scrollbar"></div>
             </div>
         </div>
 
     </main>
 
-    <!-- BOTTOM APP BAR DE NAVEGAÇÃO INTERNA (APENAS PARA MOBILE/TABLET) -->
-    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-xl lg:hidden z-50 flex justify-around p-2">
-        <button onclick="navegarParaTela('tela-resumo', this)" class="mobile-nav-item flex flex-col items-center gap-0.5 py-1 text-[#6200ee] font-bold text-xs">
-            <i class="fa-solid fa-chart-pie text-lg"></i>
-            <span>Resumo</span>
+    <!-- CONTAINER DE MODAL CUSTOMIZADO (INJETADO DINAMICAMENTE) -->
+    <div id="container-modal-custom" class="fixed inset-0 bg-slate-900/60 z-[100] backdrop-blur-xs flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-200">
+        <div id="box-modal-custom" class="bg-white w-full max-w-sm rounded-2xl border border-slate-200 shadow-xl p-5 transform scale-95 transition-transform duration-200 space-y-4">
+            <div class="flex items-start gap-3">
+                <div id="modal-icone-bg" class="w-8 h-8 rounded-full flex items-center justify-center shrink-0">
+                    <i id="modal-icone" class="text-sm"></i>
+                </div>
+                <div class="flex-1">
+                    <h4 id="modal-titulo" class="text-sm font-bold text-slate-800"></h4>
+                    <p id="modal-mensagem" class="text-xs text-slate-500 mt-1 leading-relaxed"></p>
+                </div>
+            </div>
+            <div id="modal-acoes" class="flex justify-end gap-2 pt-1"></div>
+        </div>
+    </div>
+
+    <!-- FOOTER INSTITUCIONAL HUGESOFT -->
+    <footer class="w-full text-center py-4 border-t border-slate-200 text-[11px] text-slate-400 font-medium bg-white mt-8 hidden lg:block">
+        Feito com amor por <span class="text-slate-600 font-bold hover:text-indigo-600 transition-colors cursor-default">Elvis Huges</span> | <span class="text-slate-400 font-semibold">hugesoft</span> &copy; 2026
+    </footer>
+
+    <!-- ABAS FOOTER MOBILE -->
+    <div class="fixed bottom-0 left-0 right-0 bg-slate-900 text-slate-400 border-t border-slate-800 shadow-2xl lg:hidden z-50 flex justify-around p-2 pb-safe">
+        <button onclick="navegarParaTela('tela-resumo', this)" class="mobile-nav-item flex flex-col items-center gap-1 py-1 text-indigo-400 font-semibold text-xs w-20">
+            <i class="fa-solid fa-chart-pie text-base"></i>
+            <span>Balanço</span>
         </button>
-        <button onclick="navegarParaTela('tela-contas', this)" class="mobile-nav-item flex flex-col items-center gap-0.5 py-1 text-slate-400 text-xs">
-            <i class="fa-solid fa-dollar-sign text-lg"></i>
-            <span>Contas</span>
+        <button onclick="navegarParaTela('tela-contas', this)" class="mobile-nav-item flex flex-col items-center gap-1 py-1 text-xs w-20">
+            <i class="fa-solid fa-list-check text-base"></i>
+            <span>Saídas</span>
         </button>
-        <button onclick="navegarParaTela('tela-desejos', this)" class="mobile-nav-item flex flex-col items-center gap-0.5 py-1 text-slate-400 text-xs">
-            <i class="fa-solid fa-star text-lg"></i>
-            <span>Desejos</span>
+        <button onclick="navegarParaTela('tela-desejos', this)" class="mobile-nav-item flex flex-col items-center gap-1 py-1 text-xs w-20">
+            <i class="fa-solid fa-bullseye text-base"></i>
+            <span>Metas</span>
         </button>
     </div>
 
@@ -224,53 +293,125 @@
         const mesesDoAno = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
         const mesAtualSistema = mesesDoAno[new Date().getMonth()];
 
-        let estado = JSON.parse(localStorage.getItem('my_finances_v4_mobile')) || {
-            reservaGlobal: 15000,
+        let estado = JSON.parse(localStorage.getItem('my_finances_pwa_v7')) || {
+            reservaGlobal: 0,
             mesSelecionado: mesAtualSistema,
             meses: {},
-            planos: [
-                { id: 1, nome: 'iPhone 16 Pro', valor: 8000, seguranca: 10000, celebrado: false }
-            ],
-            primeiroAcesso: true
+            planos: []
         };
+
+        let propagacaoSelecionada = "proximo"; 
+
+        // Sistema Customizado de Diálogos (Sem Alertas Nativos)
+        function mostrarModalCustom({ titulo, mensagem, tipo = 'info', confirmarTexto = 'OK', cancelarTexto = '', aoConfirmar = null }) {
+            const container = document.getElementById('container-modal-custom');
+            const box = document.getElementById('box-modal-custom');
+            const iconeBg = document.getElementById('modal-icone-bg');
+            const icone = document.getElementById('modal-icone');
+            const txtTitulo = document.getElementById('modal-titulo');
+            const txtMsg = document.getElementById('modal-mensagem');
+            const containerAcoes = document.getElementById('modal-acoes');
+
+            txtTitulo.innerText = titulo;
+            txtMsg.innerText = mensagem;
+            containerAcoes.innerHTML = '';
+
+            if (tipo === 'perigo') {
+                iconeBg.className = "w-8 h-8 rounded-full bg-rose-50 flex items-center justify-center shrink-0";
+                icone.className = "fa-solid fa-triangle-exclamation text-rose-600 text-sm";
+            } else if (tipo === 'pergunta') {
+                iconeBg.className = "w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center shrink-0";
+                icone.className = "fa-solid fa-circle-question text-indigo-600 text-sm";
+            } else {
+                iconeBg.className = "w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center shrink-0";
+                icone.className = "fa-solid fa-circle-info text-amber-600 text-sm";
+            }
+
+            const fecharModal = () => {
+                container.classList.add('opacity-0', 'pointer-events-none');
+                box.classList.add('scale-95');
+            };
+
+            if (cancelarTexto) {
+                const btnCancel = document.createElement('button');
+                btnCancel.className = "px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-500 font-semibold text-xs transition-colors";
+                btnCancel.innerText = cancelarTexto;
+                btnCancel.onclick = fecharModal;
+                containerAcoes.appendChild(btnCancel);
+            }
+
+            const btnConfirm = document.createElement('button');
+            btnConfirm.className = `px-3 py-1.5 rounded-lg font-semibold text-xs text-white transition-colors ${tipo === 'perigo' ? 'bg-rose-600 hover:bg-rose-700' : 'bg-slate-800 hover:bg-slate-900'}`;
+            btnConfirm.innerText = confirmarTexto;
+            btnConfirm.onclick = () => {
+                fecharModal();
+                if (aoConfirmar) aoConfirmar();
+            };
+            containerAcoes.appendChild(btnConfirm);
+
+            container.classList.remove('opacity-0', 'pointer-events-none');
+            box.classList.remove('scale-95');
+        }
+
+        function atualizarDataDoSistema() {
+            const hoje = new Date();
+            const opcoes = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+            const dataFormatada = hoje.toLocaleDateString('pt-BR', { ...opcoes });
+            
+            document.getElementById('data-atual-topo').innerText = dataFormatada;
+            document.getElementById('data-atual-mobile').innerText = hoje.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ` (${hoje.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '')})`;
+        }
 
         function iniciarMesSeNaoExistir(mes) {
             if (!estado.meses[mes]) {
-                estado.meses[mes] = { salario: 6000, gastos: [] };
+                estado.meses[mes] = { salario: 0, gastos: [], sobraTransferida: false, valorSobraTransferido: 0 };
             }
         }
 
-        // Navegação de Telas SPA (Mobile)
+        function setPropagacao(modo) {
+            propagacaoSelecionada = modo;
+            const btnMes = document.getElementById('btn-prop-mes');
+            const btnAno = document.getElementById('btn-prop-ano');
+            
+            if(modo === 'proximo') {
+                btnMes.className = "flex-1 text-[10px] font-bold py-1 rounded-md text-indigo-600 bg-white shadow-xs";
+                btnAno.className = "flex-1 text-[10px] font-semibold py-1 rounded-md text-slate-500 hover:text-slate-800";
+            } else {
+                btnAno.className = "flex-1 text-[10px] font-bold py-1 rounded-md text-indigo-600 bg-white shadow-xs";
+                btnMes.className = "flex-1 text-[10px] font-semibold py-1 rounded-md text-slate-500 hover:text-slate-800";
+            }
+        }
+
         function navegarParaTela(idTela, elementoBotao) {
             document.querySelectorAll('.mobile-screen').forEach(tela => tela.classList.remove('active-screen'));
             document.getElementById(idTela).classList.add('active-screen');
             
             document.querySelectorAll('.mobile-nav-item').forEach(btn => {
-                btn.classList.remove('text-[#6200ee]', 'font-bold');
+                btn.classList.remove('text-indigo-400', 'font-semibold');
                 btn.classList.add('text-slate-400');
             });
             elementoBotao.classList.remove('text-slate-400');
-            elementoBotao.classList.add('text-[#6200ee]', 'font-bold');
+            elementoBotao.classList.add('text-indigo-400', 'font-semibold');
         }
 
-        // --- MÁSCARA MONETÁRIA DE ALTA PRECISÃO ---
         function formatarCampoMoeda(elemento) {
             let valor = elemento.value.replace(/\D/g, "");
             if (valor === "") { elemento.value = ""; return 0; }
             let valorNumerico = parseFloat(valor) / 100;
-            elemento.value = valorNumerico.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+            elemento.value = valorNumerico.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }).replace("R$", "").trim();
             return valorNumerico;
         }
 
         function converterTextoParaNumero(texto) {
             if (!texto) return 0;
-            let limpo = texto.toString().replace(/[^\d]/g, "");
+            let limpo = text = texto.toString().replace(/[^\d]/g, "");
             return parseFloat(limpo) / 100 || 0;
         }
 
         function definirValorInputComMascara(id, valor) {
             const el = document.getElementById(id);
-            if (el) el.value = valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+            if (el && valor > 0) el.value = valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }).replace("R$", "").trim();
+            else if (el) el.value = "";
         }
 
         const inputSalario = document.getElementById('input-salario');
@@ -280,18 +421,11 @@
         const tabsContainer = document.getElementById('tabs-container');
 
         window.addEventListener('DOMContentLoaded', () => {
-            if (estado.primeiroAcesso) {
-                abrirWelcome();
-                estado.primeiroAcesso = false;
-                localStorage.setItem('my_finances_v4_mobile', JSON.stringify(estado));
-            }
-
+            atualizarDataDoSistema();
             renderAbasNavegacao();
-
             [inputSalario, inputReserva, document.getElementById('gasto-valor'), document.getElementById('plano-valor'), document.getElementById('plano-seguranca')].forEach(input => {
                 input.addEventListener('input', (e) => formatarCampoMoeda(e.target));
             });
-
             configurarEventos();
             render();
         });
@@ -300,85 +434,173 @@
             tabsContainer.innerHTML = '';
             mesesDoAno.forEach(mes => {
                 const btn = document.createElement('button');
-                btn.className = `tab-btn flex-1 text-center py-2.5 px-4 text-xs font-semibold uppercase tracking-wider text-slate-400 hover:text-[#6200ee] whitespace-nowrap ${estado.mesSelecionado === mes ? 'active' : ''}`;
-                btn.innerText = mes.substring(0, 3); // Abreviação para caber em telas móveis pequenas
+                btn.className = `tab-mes px-2 py-3 text-xs uppercase tracking-wider font-semibold whitespace-nowrap ${estado.mesSelecionado === mes ? 'active' : ''}`;
+                btn.innerText = mes;
                 btn.onclick = () => {
-                    estado.mesSelecionado = mes;
-                    document.querySelectorAll('.tab-btn').forEach((b, idx) => {
-                        if (mesesDoAno[idx] === mes) b.classList.add('active');
-                        else b.classList.remove('active');
-                    });
-                    salvarEAtualizar();
+                    if(estado.mesSelecionado === mes) return;
+                    
+                    // Executa a animação de transição de mês
+                    const grid = document.getElementById('conteudo-principal');
+                    grid.classList.add('troca-mes-esconder');
+                    
+                    setTimeout(() => {
+                        estado.mesSelecionado = mes;
+                        document.querySelectorAll('.tab-mes').forEach((b, idx) => {
+                            if (mesesDoAno[idx] === mes) b.classList.add('active');
+                            else b.classList.remove('active');
+                        });
+                        salvarEAtualizar();
+                        grid.classList.remove('troca-mes-esconder');
+                    }, 200);
                 };
                 tabsContainer.appendChild(btn);
             });
         }
 
         function configurarEventos() {
-            inputSalario.addEventListener('input', () => {
+            inputSalario.addEventListener('change', () => {
                 iniciarMesSeNaoExistir(estado.mesSelecionado);
                 estado.meses[estado.mesSelecionado].salario = converterTextoParaNumero(inputSalario.value);
-                localStorage.setItem('my_finances_v4_mobile', JSON.stringify(estado));
-                atualizarCalculos();
+                salvarEAtualizar();
             });
 
-            inputReserva.addEventListener('input', () => {
+            inputReserva.addEventListener('change', () => {
                 estado.reservaGlobal = converterTextoParaNumero(inputReserva.value);
-                localStorage.setItem('my_finances_v4_mobile', JSON.stringify(estado));
-                atualizarCalculos();
+                salvarEAtualizar();
             });
 
             formGasto.addEventListener('submit', (e) => {
                 e.preventDefault();
-                iniciarMesSeNaoExistir(estado.mesSelecionado);
-                estado.meses[estado.mesSelecionado].gastos.push({
-                    id: Date.now(),
-                    nome: document.getElementById('gasto-nome').value,
-                    valor: converterTextoParaNumero(document.getElementById('gasto-valor').value),
-                    pago: false
-                });
+                const nome = document.getElementById('gasto-nome').value;
+                const valor = converterTextoParaNumero(document.getElementById('gasto-valor').value);
+                const mesAtual = estado.mesSelecionado;
+                
+                const novoGastoBase = { nome, valor, pago: false };
+
+                if (propagacaoSelecionada === "proximo") {
+                    iniciarMesSeNaoExistir(mesAtual);
+                    const grupoId = Date.now();
+                    estado.meses[mesAtual].gastos.push({ ...novoGastoBase, id: Date.now(), grupoId });
+                    
+                    const idxProximo = mesesDoAno.indexOf(mesAtual) + 1;
+                    if (idxProximo < mesesDoAno.length) {
+                        const mProximo = mesesDoAno[idxProximo];
+                        iniciarMesSeNaoExistir(mProximo);
+                        estado.meses[mProximo].gastos.push({ ...novoGastoBase, id: Date.now() + 99, grupoId });
+                    }
+                } else if (propagacaoSelecionada === "ano") {
+                    const grupoId = Date.now();
+                    mesesDoAno.forEach((m, idx) => {
+                        iniciarMesSeNaoExistir(m);
+                        estado.meses[m].gastos.push({ ...novoGastoBase, id: Date.now() + idx, grupoId });
+                    });
+                }
+
                 formGasto.reset();
+                setPropagacao('proximo');
                 salvarEAtualizar();
             });
 
             formPlano.addEventListener('submit', (e) => {
                 e.preventDefault();
-                estado.planos.push({
-                    id: Date.now(),
-                    nome: document.getElementById('plano-nome').value,
-                    valor: converterTextoParaNumero(document.getElementById('plano-valor').value),
-                    seguranca: converterTextoParaNumero(document.getElementById('plano-seguranca').value),
-                    celebrado: false
-                });
+                const idEdicao = document.getElementById('plano-id-edicao').value;
+                const nome = document.getElementById('plano-nome').value;
+                const url = document.getElementById('plano-url').value;
+                const valor = converterTextoParaNumero(document.getElementById('plano-valor').value);
+                const seguranca = converterTextoParaNumero(document.getElementById('plano-seguranca').value);
+
+                if (idEdicao) {
+                    const plano = estado.planos.find(p => p.id == idEdicao);
+                    if (plano) {
+                        Object.assign(plano, { nome, url, valor, seguranca, celebrado: false });
+                    }
+                    document.getElementById('plano-id-edicao').value = "";
+                    document.getElementById('btn-submit-plano').innerHTML = `<i class="fa-solid fa-bookmark mr-1"></i> Registrar Meta`;
+                } else {
+                    estado.planos.push({ id: Date.now(), nome, url, valor, seguranca, celebrado: false });
+                }
+                
                 formPlano.reset();
                 salvarEAtualizar();
             });
         }
 
-        function copiarGastoParaProximoMes(id) {
-            const mesAtualIdx = mesesDoAno.indexOf(estado.mesSelecionado);
-            if (mesAtualIdx === 11) return;
-            const proximoMesNome = mesesDoAno[mesAtualIdx + 1];
-            const gastoOriginal = estado.meses[estado.mesSelecionado].gastos.find(g => g.id === id);
-            if (gastoOriginal) {
+        function transferirSobraParaReserva() {
+            const mesAtual = estado.mesSelecionado;
+            const dadosMes = estado.meses[mesAtual];
+            const totalGastosGeral = dadosMes.gastos.reduce((acc, g) => acc + g.valor, 0);
+            const sobraSalario = dadosMes.salario - totalGastosGeral;
+
+            if (sobraSalario <= 0 || dadosMes.sobraTransferida) return;
+
+            estado.reservaGlobal += sobraSalario;
+            dadosMes.sobraTransferida = true;
+            dadosMes.valorSobraTransferido = sobraSalario;
+
+            const mesAtualIdx = mesesDoAno.indexOf(mesAtual);
+            if (mesAtualIdx < 11) {
+                const proximoMesNome = mesesDoAno[mesAtualIdx + 1];
                 iniciarMesSeNaoExistir(proximoMesNome);
-                estado.meses[proximoMesNome].gastos.push({ id: Date.now() + 1, nome: gastoOriginal.nome, valor: gastoOriginal.valor, pago: false });
-                salvarEAtualizar();
+                estado.meses[proximoMesNome].salario += sobraSalario;
             }
+
+            confetti({ particleCount: 40, spread: 30, origin: { y: 0.8 }, colors: ['#6366f1', '#a855f7', '#10b981'] });
+            salvarEAtualizar();
         }
 
-        function replicarGastoRestoDoAno(id) {
-            const mesAtualIdx = mesesDoAno.indexOf(estado.mesSelecionado);
-            const gastoOriginal = estado.meses[estado.mesSelecionado].gastos.find(g => g.id === id);
-            if (gastoOriginal && mesAtualIdx < 11) {
-                for (let i = mesAtualIdx + 1; i < mesesDoAno.length; i++) {
-                    let nomeMesFuturo = mesesDoAno[i];
-                    iniciarMesSeNaoExistir(nomeMesFuturo);
-                    if (!estado.meses[nomeMesFuturo].gastos.some(g => g.nome === gastoOriginal.nome)) {
-                        estado.meses[nomeMesFuturo].gastos.push({ id: Date.now() + i, nome: gastoOriginal.nome, valor: gastoOriginal.valor, pago: false });
-                    }
+        function desfazerTransferenciaSobra() {
+            const mesAtual = estado.mesSelecionado;
+            const dadosMes = estado.meses[mesAtual];
+
+            if (!dadosMes.sobraTransferida) return;
+
+            const valorEstornado = dadosMes.valorSobraTransferido;
+            estado.reservaGlobal -= valorEstornado;
+
+            const mesAtualIdx = mesesDoAno.indexOf(mesAtual);
+            if (mesAtualIdx < 11) {
+                const proximoMesNome = mesesDoAno[mesAtualIdx + 1];
+                if (estado.meses[proximoMesNome]) {
+                    estado.meses[proximoMesNome].salario -= valorEstornado;
+                    if (estado.meses[proximoMesNome].salario < 0) estado.meses[proximoMesNome].salario = 0;
                 }
-                salvarEAtualizar();
+            }
+
+            dadosMes.sobraTransferida = false;
+            dadosMes.valorSobraTransferido = 0;
+            salvarEAtualizar();
+        }
+
+        function confirmarLimpezaDados() {
+            mostrarModalCustom({
+                titulo: "Limpar histórico financeiro?",
+                mensagem: "Esta ação apagará de forma definitiva todos os parâmetros, despesas e metas de aquisição salvos no Maneki.",
+                tipo: "perigo",
+                confirmarTexto: "Apagar Tudo",
+                cancelarTexto: "Manter Dados",
+                aoConfirmar: () => {
+                    localStorage.removeItem('my_finances_pwa_v7');
+                    estado = { reservaGlobal: 0, mesSelecionado: mesAtualSistema, meses: {}, planos: [] };
+                    formGasto.reset(); formPlano.reset();
+                    document.getElementById('plano-id-edicao').value = "";
+                    salvarEAtualizar();
+                    renderAbasNavegacao();
+                }
+            });
+        }
+
+        function editarPlano(id) {
+            const plano = estado.planos.find(p => p.id === id);
+            if (plano) {
+                document.getElementById('plano-id-edicao').value = plano.id;
+                document.getElementById('plano-nome').value = plano.nome;
+                document.getElementById('plano-url').value = plano.url || "";
+                
+                definirValorInputComMascara('plano-valor', plano.valor);
+                definirValorInputComMascara('plano-seguranca', plano.seguranca);
+                
+                document.getElementById('btn-submit-plano').innerHTML = `<i class="fa-solid fa-pen-to-square mr-1"></i> Atualizar Meta`;
+                navegarParaTela('tela-desejos', document.querySelectorAll('.mobile-nav-item')[2]);
             }
         }
 
@@ -388,27 +610,62 @@
             if (gasto) { gasto.pago = !gasto.pago; salvarEAtualizar(); }
         }
 
-        function removerGasto(id) {
+        function removerGasto(id, grupoId) {
             const mes = estado.meses[estado.mesSelecionado];
-            mes.gastos = mes.gastos.filter(g => g.id !== id);
-            salvarEAtualizar();
+            
+            if (grupoId) {
+                mostrarModalCustom({
+                    titulo: "Remover recorrência?",
+                    mensagem: "Este item possui lançamentos replicados. Deseja remover dos outros meses também?",
+                    tipo: "pergunta",
+                    confirmarTexto: "Todos os Meses",
+                    cancelarTexto: "Apenas Deste Mês",
+                    aoConfirmar: () => {
+                        mesesDoAno.forEach(m => {
+                            if (estado.meses[m]) {
+                                estado.meses[m].gastos = estado.meses[m].gastos.filter(g => g.grupoId !== grupoId);
+                            }
+                        });
+                        salvarEAtualizar();
+                    },
+                    // Caso o usuário clique em Cancelar/Apenas Deste Mês, executamos a remoção local
+                    aoCancelarAcaoAlternativa: () => {
+                        mes.gastos = mes.gastos.filter(g => g.id !== id);
+                        salvarEAtualizar();
+                    }
+                });
+                
+                // Força ajuste rápido do fluxo de botões para capturar o "Apenas Deste Mês" que agirá como alternativa
+                const btns = document.getElementById('modal-acoes').children;
+                if(btns.length > 0) {
+                    btns[0].onclick = () => {
+                        document.getElementById('container-modal-custom').classList.add('opacity-0', 'pointer-events-none');
+                        mes.gastos = mes.gastos.filter(g => g.id !== id);
+                        salvarEAtualizar();
+                    };
+                }
+            } else {
+                mes.gastos = mes.gastos.filter(g => g.id !== id);
+                salvarEAtualizar();
+            }
         }
 
-        function removerPlano(id) { estado.planos = estado.planos.filter(p => p.id !== id); salvarEAtualizar(); }
-        function salvarEAtualizar() { localStorage.setItem('my_finances_v4_mobile', JSON.stringify(estado)); render(); }
+        function removerPlano(id) { 
+            mostrarModalCustom({
+                titulo: "Remover meta?",
+                mensagem: "Tem certeza que deseja arquivar ou excluir esta meta do seu plano de aquisições?",
+                tipo: "pergunta",
+                confirmarTexto: "Confirmar Remoção",
+                cancelarTexto: "Manter Meta",
+                aoConfirmar: () => {
+                    estado.planos = estado.planos.filter(p => p.id !== id); 
+                    salvarEAtualizar(); 
+                }
+            });
+        }
+        
+        function salvarEAtualizar() { localStorage.setItem('my_finances_pwa_v7', JSON.stringify(estado)); render(); }
         function formatarBRL(valor) { return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
-
-        function atualizarCalculos() {
-            const mesAtual = estado.mesSelecionado;
-            iniciarMesSeNaoExistir(mesAtual);
-            const dadosMes = estado.meses[mesAtual];
-            const totalGastosGeral = dadosMes.gastos.reduce((acc, g) => acc + g.valor, 0);
-            const sobraSalario = dadosMes.salario - totalGastosGeral;
-            const saldoLivre = estado.reservaGlobal + sobraSalario;
-            document.getElementById('saldo-livre').innerText = formatarBRL(saldoLivre);
-            document.getElementById('resumo-sobra').innerText = formatarBRL(sobraSalario);
-            renderizarCardsDesejo(saldoLivre);
-        }
 
         function render() {
             const mesAtual = estado.mesSelecionado;
@@ -421,15 +678,30 @@
             const dadosMes = estado.meses[mesAtual];
             const totalGastosGeral = dadosMes.gastos.reduce((acc, g) => acc + g.valor, 0);
             const totalGastosPagos = dadosMes.gastos.filter(g => g.pago).reduce((acc, g) => acc + g.valor, 0);
-            const totalGastosPendentes = totalGastosGeral - totalGastosPagos;
             const sobraSalario = dadosMes.salario - totalGastosGeral;
-            const saldoLivre = estado.reservaGlobal + sobraSalario;
+            const saldoLivre = estado.reservaGlobal;
 
             document.getElementById('saldo-livre').innerText = formatarBRL(saldoLivre);
             document.getElementById('resumo-gastos-total').innerText = formatarBRL(totalGastosGeral);
-            document.getElementById('resumo-gastos-pagos').innerText = formatarBRL(totalGastosPagos);
-            document.getElementById('resumo-gastos-pendentes').innerText = formatarBRL(totalGastosPendentes);
+            document.getElementById('resumo-gastos-paid').innerText = formatarBRL(totalGastosPagos);
             document.getElementById('resumo-sobra').innerText = formatarBRL(sobraSalario);
+
+            const containerAcao = document.getElementById('container-acao-sobra');
+            if (dadosMes.sobraTransferida) {
+                containerAcao.innerHTML = `
+                    <button onclick="desfazerTransferenciaSobra()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs py-2 rounded-lg transition-colors border border-slate-200">
+                        <i class="fa-solid fa-arrow-rotate-left mr-1"></i> Estornar Saldo Conservado
+                    </button>
+                `;
+            } else if (sobraSalario > 0) {
+                containerAcao.innerHTML = `
+                    <button onclick="transferirSobraParaReserva()" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold text-xs py-2 rounded-lg transition-all shadow-sm">
+                        <i class="fa-solid fa-piggy-bank mr-1"></i> Destinar Excedente à Reserva
+                    </button>
+                `;
+            } else {
+                containerAcao.innerHTML = "";
+            }
 
             const boxPendentes = document.getElementById('lista-gastos-pendentes');
             const boxPagos = document.getElementById('lista-gastos-pagos');
@@ -437,40 +709,40 @@
 
             dadosMes.gastos.forEach(gasto => {
                 const item = document.createElement('div');
+                const badgeRecorrente = gasto.grupoId ? `<span class="text-[9px] bg-purple-50 text-purple-600 border border-purple-100 font-medium px-1 rounded ml-1" title="Lançamento Multiperíodo"><i class="fa-solid fa-link text-[8px] mr-0.5"></i>Recorrente</span>` : '';
+                
                 if (!gasto.pago) {
-                    item.className = "bg-white p-3 rounded-xl border border-slate-200 flex flex-col justify-between gap-2.5";
+                    item.className = "bg-white p-3 rounded-xl border border-slate-200 flex items-center justify-between gap-2 shadow-xs";
                     item.innerHTML = `
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2.5">
-                                <input type="checkbox" onclick="alternarStatusGasto(${gasto.id})" class="rounded text-[#6200ee] w-4 h-4 cursor-pointer">
-                                <span class="font-bold text-slate-800 text-sm">${gasto.nome}</span>
+                        <div class="flex items-center gap-2.5">
+                            <input type="checkbox" onclick="alternarStatusGasto(${gasto.id})" class="rounded border-slate-300 text-indigo-600 w-4 h-4 cursor-pointer focus:ring-0">
+                            <div>
+                                <span class="font-semibold text-slate-800 text-xs flex items-center gap-1">${gasto.nome} ${badgeRecorrente}</span>
+                                <span class="text-xs font-semibold font-mono text-indigo-600">${formatarBRL(gasto.valor)}</span>
                             </div>
-                            <span class="font-bold text-slate-700 text-sm">${formatarBRL(gasto.valor)}</span>
                         </div>
-                        <div class="flex items-center justify-end gap-2 border-t pt-2">
-                            <button onclick="copiarGastoParaProximoMes(${gasto.id})" class="bg-indigo-50 hover:bg-indigo-100 text-[#6200ee] px-2 py-1 rounded-md text-[10px] font-bold uppercase transition-all"><i class="fa-solid fa-calendar-plus mr-0.5"></i> +1 Mês</button>
-                            <button onclick="replicarGastoRestoDoAno(${gasto.id})" class="bg-purple-50 hover:bg-purple-100 text-purple-700 px-2 py-1 rounded-md text-[10px] font-bold uppercase transition-all"><i class="fa-solid fa-infinity mr-0.5"></i> Ano Todo</button>
-                            <button onclick="removerGasto(${gasto.id})" class="text-slate-300 hover:text-red-500 p-1"><i class="fa-solid fa-trash-can text-xs"></i></button>
-                        </div>
+                        <button onclick="removerGasto(${gasto.id}, ${gasto.grupoId || 'null'})" class="text-slate-400 hover:text-rose-500 p-1 text-xs transition-colors">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
                     `;
                     boxPendentes.appendChild(item);
                 } else {
-                    item.className = "flex justify-between items-center bg-slate-50 px-3 py-2 rounded-xl border border-slate-200/60 text-xs";
+                    item.className = "flex justify-between items-center bg-slate-50 px-3 py-2 rounded-lg text-xs border border-slate-200/60";
                     item.innerHTML = `
-                        <div class="flex items-center gap-2.5">
-                            <input type="checkbox" checked onclick="alternarStatusGasto(${gasto.id})" class="rounded text-emerald-600 w-3.5 h-3.5 cursor-pointer">
-                            <span class="line-through text-slate-400 font-normal">${gasto.nome}</span>
+                        <div class="flex items-center gap-2.5 text-slate-400">
+                            <input type="checkbox" checked onclick="alternarStatusGasto(${gasto.id})" class="rounded border-slate-300 text-emerald-600 w-4 h-4 cursor-pointer focus:ring-0">
+                            <span class="line-through font-medium">${gasto.nome} (${formatarBRL(gasto.valor)})</span>
+                            ${badgeRecorrente}
                         </div>
-                        <div class="flex items-center gap-3">
-                            <span class="font-medium text-slate-400 line-through">${formatarBRL(gasto.valor)}</span>
-                            <button onclick="removerGasto(${gasto.id})" class="text-slate-300 hover:text-red-500"><i class="fa-solid fa-trash-can"></i></button>
-                        </div>
+                        <button onclick="removerGasto(${gasto.id}, ${gasto.grupoId || 'null'})" class="text-slate-300 hover:text-rose-400 transition-colors">
+                            <i class="fa-solid fa-xmark text-sm"></i>
+                        </button>
                     `;
                     boxPagos.appendChild(item);
                 }
             });
 
-            if(boxPendentes.children.length === 0) boxPendentes.innerHTML = '<p class="text-xs text-slate-400 italic py-1 text-center">Nenhuma pendência pendente.</p>';
+            if (boxPendentes.children.length === 0) boxPendentes.innerHTML = '<p class="text-xs text-slate-400 italic py-2 text-center">Nenhuma pendência financeira listada.</p>';
             renderizarCardsDesejo(saldoLivre);
         }
 
@@ -478,79 +750,64 @@
             const boxPlanos = document.getElementById('lista-planos');
             boxPlanos.innerHTML = '';
 
+            if (estado.planos.length === 0) {
+                boxPlanos.innerHTML = '<p class="text-xs text-slate-400 italic py-6 text-center">Nenhum planejamento de aquisição ativo.</p>';
+                return;
+            }
+
             estado.planos.forEach(plano => {
                 const metaTotalNecessaria = plano.valor + plano.seguranca;
                 let percentual = (saldoLivre / metaTotalNecessaria) * 100;
                 percentual = Math.min(Math.max(percentual, 0), 100);
                 const podeComprar = saldoLivre >= metaTotalNecessaria;
-                const sobraPosCompra = saldoLivre - plano.valor;
 
                 const itemPlano = document.createElement('div');
-                itemPlano.className = `p-4 rounded-2xl border-2 transition-all ${podeComprar ? 'bg-emerald-50/40 border-emerald-400' : 'bg-white border-slate-200'}`;
+                itemPlano.className = `p-3.5 rounded-xl border bg-white shadow-xs ${podeComprar ? 'border-emerald-500 ring-1 ring-emerald-500 bg-emerald-50/10' : 'border-slate-200'}`;
                 
+                const linkValido = plano.url && plano.url.trim().startsWith('http');
+                const linkHTML = linkValido ? `
+                    <a href="${plano.url}" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-indigo-600 bg-slate-50 border border-slate-200 p-1.5 rounded-lg transition-colors text-xs">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+                ` : '';
+
                 itemPlano.innerHTML = `
                     <div class="flex justify-between items-start mb-2">
                         <div>
-                            <h4 class="font-bold text-slate-800 text-sm flex flex-wrap items-center gap-1.5">
+                            <h4 class="font-semibold text-slate-800 text-xs flex items-center gap-1.5">
                                 ${plano.nome}
-                                ${podeComprar ? '<span class="text-[9px] bg-emerald-600 text-white font-bold px-1.5 py-0.5 rounded">Liberado</span>' : ''}
+                                ${podeComprar ? '<span class="text-[9px] bg-emerald-600 font-bold text-white px-1.5 py-0.5 rounded-sm">Disponível</span>' : ''}
                             </h4>
-                            <p class="text-[11px] text-slate-500 mt-0.5">Custo: <b>${formatarBRL(plano.valor)}</b></p>
+                            <p class="text-[11px] text-slate-400">Meta Consolidada: <span class="text-slate-600 font-medium font-mono">${formatarBRL(plano.valor)}</span></p>
                         </div>
-                        <button onclick="removerPlano(${plano.id})" class="text-slate-300 hover:text-red-500"><i class="fa-solid fa-xmark text-sm"></i></button>
-                    </div>
-
-                    <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden mb-1.5 shadow-inner">
-                        <div class="progress-bar h-full ${podeComprar ? 'bg-emerald-500' : 'bg-[#6200ee]'}" style="width: ${percentual}%"></div>
-                    </div>
-
-                    <div class="flex justify-between text-[11px] text-slate-500 font-medium mb-3">
-                        <span>Progresso: <b class="${podeComprar ? 'text-emerald-600' : 'text-[#6200ee]'}">${percentual.toFixed(0)}%</b></span>
-                        <span>Falta: <b>${podeComprar ? 'R$ 0,00' : formatarBRL(metaTotalNecessaria - saldoLivre)}</b></span>
-                    </div>
-
-                    <!-- FRAME DE PARCELAMENTO EMBUTIDO -->
-                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5 mt-2">
-                        <div class="flex justify-between items-center cursor-pointer" onclick="document.getElementById('simulador-parcelas-${plano.id}').classList.toggle('hidden')">
-                            <span class="text-[11px] font-bold text-slate-700 uppercase tracking-wide"><i class="fa-solid fa-credit-card mr-1 text-[#6200ee]"></i> Simular Parcelas</span>
-                            <i class="fa-solid fa-chevron-down text-xs text-slate-400"></i>
-                        </div>
-                        
-                        <div id="simulador-parcelas-${plano.id}" class="hidden pt-3 space-y-2 border-t border-dashed mt-2 border-slate-300">
-                            <div class="flex items-center justify-between text-xs">
-                                <span class="text-slate-500">Número de parcelas:</span>
-                                <select onchange="calcularParcelamento(${plano.id}, ${plano.valor}, this.value)" class="bg-white border rounded p-1 font-bold text-slate-700 focus:outline-none">
-                                    ${[1,2,3,4,5,6,10,12].map(x => `<option value="${x}">${x}x</option>`).join('')}
-                                </select>
-                            </div>
-                            <div class="flex justify-between items-center text-xs bg-white p-2 rounded-lg border">
-                                <span class="text-slate-500">Valor da prestação:</span>
-                                <span id="val-parcela-${plano.id}" class="font-bold text-slate-900">${formatarBRL(plano.valor)}</span>
-                            </div>
+                        <div class="flex items-center gap-1">
+                            ${linkHTML}
+                            <button onclick="editarPlano(${plano.id})" class="text-slate-400 hover:text-slate-600 bg-slate-50 border border-slate-200 p-1.5 rounded-lg text-xs transition-colors">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button onclick="removerPlano(${plano.id})" class="text-slate-400 hover:text-rose-500 bg-slate-50 border border-slate-200 p-1.5 rounded-lg text-xs transition-colors">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
                         </div>
                     </div>
 
-                    <div class="mt-3 pt-2 border-t border-dashed border-slate-200 text-[10px] flex justify-between items-center text-slate-500">
-                        <span>Reserva final pós-compra:</span>
-                        <span class="font-bold text-xs ${sobraPosCompra < plano.seguranca ? 'text-amber-600' : 'text-emerald-600'}">${formatarBRL(sobraPosCompra)}</span>
+                    <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mb-1 border border-slate-200/40">
+                        <div class="h-full ${podeComprar ? 'bg-emerald-500' : 'bg-gradient-to-r from-indigo-500 to-purple-500'}" style="width: ${percentual}%"></div>
+                    </div>
+
+                    <div class="flex justify-between text-[10px] text-slate-400 font-medium font-mono">
+                        <span>Falta: ${podeComprar ? 'R$ 0,00' : formatarBRL(metaTotalNecessaria - saldoLivre)}</span>
+                        <span class="${podeComprar ? 'text-emerald-600 font-bold' : 'text-slate-600'}">${percentual.toFixed(0)}%</span>
                     </div>
                 `;
 
-                if (podeComprar && !plano.celebrado) {
-                    plano.celebrado = true;
-                    setTimeout(() => { confetti({ particleCount: 60, spread: 50, origin: { y: 0.8 } }); }, 200);
+                if (podeComprar && !plano.celebrated) {
+                    plano.celebrated = true;
+                    setTimeout(() => { confetti({ particleCount: 30, spread: 30, origin: { y: 0.8 }, colors: ['#6366f1', '#a855f7'] }); }, 150);
                 }
                 boxPlanos.appendChild(itemPlano);
             });
         }
-
-        function calcularParcelamento(idPlano, valorTotal, parcelas) {
-            const valorParcela = valorTotal / parseInt(parcelas);
-            document.getElementById(`val-parcela-${idPlano}`).innerText = `${parcelas}x de ${formatarBRL(valorParcela)}`;
-        }
-
-        function fecharWelcome() { document.getElementById('welcome-screen').classList.add('hidden'); }
-        function abrirWelcome() { document.getElementById('welcome-screen').classList.remove('hidden'); }
     </script>
 </body>
 </html>
